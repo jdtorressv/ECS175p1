@@ -217,12 +217,12 @@ int main(int argc, char *argv[])
 			bool insideNow = false; 
 			bool beenInside = false; 
 			for (int j = 0; j < wWidth; j++) {
-				//j walks across a scan line
+				//j walks across a scan line 
 				int r = PolygonBuffer[(i*wWidth+j)*3+0]; 
-				int g = PolygonBuffer[(i*wWidth+j)*3+0];
-				int b = PolygonBuffer[(i*wWidth+j)*3+0];
+				int g = PolygonBuffer[(i*wWidth+j)*3+1];
+				int b = PolygonBuffer[(i*wWidth+j)*3+2];
 
-				if (r == 0 && g == 255 && b == 255 && !beenOnBlue && i != maxExtrema && i != minExtrema) {
+				if (r == 0 && g == 255 && b == 255 && !beenOnBlue && fabs((float)i-maxExtrema) > 1.0 && fabs((float)i-minExtrema) > 1.0) {
 					//Toggle the flag and wait to see what happens next
 					beenOnBlue = true;	
 				}

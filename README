@@ -2,4 +2,7 @@ Joseph Torres
 996202666
 jdtorres@ucdavis.edu
 
-To compile, simply type "make," and then you may run "p1". 
+Instructions: 
+Simply type "make" to compile. To run, enter "p1" followed by two integer arguments for the viewing window's width and height respectively. 
+Arguments of 500, 500 do nicely. You will then be promped to enter "b" or "B" to have the default polygons represented in the input file  
+drawn using Bresenham's Algorithm or enter "d" or "D" to use the DDA Algorithm. These polygons will be rasterized. 
