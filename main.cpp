@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 	//create and set main window title
 	int MainWindow = glutCreateWindow("Polygons");
 	glClearColor(0, 0, 0, 0); //clears the buffer of OpenGL, sets a black background
-
 		
 	/*In the vector, the input file data appears as:
 	[3,4,0,0,100,0,100,100,0,100,3,300,0,300,100,200,0,5,100,200,300,200,300,300,200,400,100,300,100,200]*/
@@ -68,6 +67,8 @@ int main(int argc, char *argv[])
 	{
 		int lineCount = 0;
 	        int lineTotal; 	
+		double maxExtrema = 0; 
+		double minExtrema = wLength;
 		if (polyCount == 0)
 	        	lineTotal = *(vpoint+1);
 		else {
@@ -76,16 +77,28 @@ int main(int argc, char *argv[])
 		}	
 		while (lineCount < lineTotal) {
 			vpoint += 2; 	
-			int x0 = *(vpoint);
-      			int y0 = *(vpoint+1);
-			int xend, yend; 
+			double x0 = *(vpoint);
+      			double y0 = *(vpoint+1);
+		        if (y0 > maxExtrema) 
+				maxExtrema = y0; 
+			if (y0 < minExtrema) 
+				minExtrema = y0; 	
+			double xend, yend; 
 		        if (lineCount == lineTotal-1) {
 				xend = *(vpoint-lineCount*2+0);
 				yend = *(vpoint-lineCount*2+1);
+				if (yend > maxExtrema) 
+					maxExtrema = yend;
+			        if (yend < minExtrema) 
+					minExtrema = yend; 	
 			}	
 			else {
 				xend = *(vpoint+2);
 				yend = *(vpoint+3); 
+				if (yend > maxExtrema)
+                                        maxExtrema = yend;
+                                if (yend < minExtrema)
+                                        minExtrema = yend;
 			}
 			//BEGIN DDA
 			if (Alg == "d" || Alg == "D") {
