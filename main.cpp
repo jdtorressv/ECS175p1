@@ -12,11 +12,13 @@ using namespace std;
 
 //Remember that the input file should only contain # of poly, # of vertices, and ver. 
 float *PixelBuffer;
+float *PolygonBuffer; 
 int wWidth; 
 int wLength; 
 void display();
 inline int roundOff(const double a) {return (int)(a+0.5);}
-void makePix(int x, int y); 
+void makePix(int x, int y);
+void copyBuffer(); 
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
@@ -29,11 +31,10 @@ int main(int argc, char *argv[])
 	wWidth = atoi(argv[1]); 
 	wLength = atoi(argv[2]); 	
 	glutInitWindowSize(wWidth, wLength);
-	PixelBuffer = new float[wWidth * wLength * 3]; 
+	PixelBuffer = new float[wWidth * wLength * 3](); 
 	//set window position
 	glutInitWindowPosition(100, 100);
 
-	//Here I will read in from the input file 
 	fstream file; 
 	file.open("inputFile.txt");
 	vector<double> v1;
@@ -43,7 +44,10 @@ int main(int argc, char *argv[])
     		exit(1);   // call system to stop
 	}
  	while (file >> num) 
-    		v1.push_back(num);	
+    		v1.push_back(num);
+	auto vpoint = v1.begin(); 	
+	PolygonBuffer = new float[wWidth*wLength*3](); 
+
         string Alg; 	
 	cout << "Please specify DDA with \"d/D\" or Bresenham with \"B/b\"\n";  
 	cin >> Alg;
@@ -58,7 +62,6 @@ int main(int argc, char *argv[])
 		
 	/*In the vector, the input file data appears as:
 	[3,4,0,0,100,0,100,100,0,100,3,300,0,300,100,200,0,5,100,200,300,200,300,300,200,400,100,300,100,200]*/
-	auto vpoint = v1.begin();
 	double polyTotal = *vpoint;
         double polyCount = 0; 	
 	while (polyCount < polyTotal) // Number of polygons to process 
@@ -194,7 +197,10 @@ int main(int argc, char *argv[])
 			}//END BRESENHAM
 			lineCount++; 
 		}
-		polyCount++; 
+		//RASTERIZE!*************************************************************************
+		
+		copyBuffer(); 
+		polyCount++;
 	}
 
 	glutDisplayFunc(display);
@@ -220,7 +226,14 @@ void display()
 }
 void makePix(int x, int y)
 {
-	PixelBuffer[(y * wWidth + x) * 3 + 0] = 0;
-	PixelBuffer[(y * wWidth + x) * 3 + 1] = 255;
-	PixelBuffer[(y * wWidth + x) * 3 + 2] = 255;
+	PolygonBuffer[(y * wWidth + x) * 3 + 0] = 0;
+	PolygonBuffer[(y * wWidth + x) * 3 + 1] = 255;
+	PolygonBuffer[(y * wWidth + x) * 3 + 2] = 255;
+}
+void copyBuffer()
+{
+	for (int i = 0; i < wLength*wWidth*3; i++) {
+		if (PolygonBuffer[i] != 0)
+			PixelBuffer[i] = PolygonBuffer[i];
+	}
 }
