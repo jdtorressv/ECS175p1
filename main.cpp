@@ -1,0 +1,226 @@
+#include <GL/glut.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
+
+using namespace std;
+
+//Remember that the input file should only contain # of poly, # of vertices, and ver. 
+float *PixelBuffer;
+int wWidth; 
+int wLength; 
+void display();
+inline int roundOff(const double a) {return (int)(a+0.5);}
+void makePix(int x, int y); 
+int main(int argc, char *argv[])
+{
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // These are the default values
+	//User set the input size in the command line
+	if (argc != 3) {
+		cout << "Usage: p1 <window width> <window length>\n";
+		exit(1); 
+	}	
+	wWidth = atoi(argv[1]); 
+	wLength = atoi(argv[2]); 	
+	glutInitWindowSize(wWidth, wLength);
+	PixelBuffer = new float[wWidth * wLength * 3]; 
+	//set window position
+	glutInitWindowPosition(100, 100);
+
+	//Here I will read in from the input file 
+	fstream file; 
+	file.open("inputFile.txt");
+	vector<double> v1;
+	double num; 
+	if (!file) {
+    		cerr << "Unable to open file\n";
+    		exit(1);   // call system to stop
+	}
+ 	while (file >> num) 
+    		v1.push_back(num);	
+        string Alg; 	
+	cout << "Please specify DDA with \"d/D\" or Bresenham with \"B/b\"\n";  
+	cin >> Alg;
+        while (Alg != "d" && Alg != "D" && Alg != "B" && Alg != "b") {
+		cout << "Specify DDA with \"d/D\" or Bresenham with \"B/b\"\n";
+		cin >> Alg; 
+	}		
+	//create and set main window title
+	int MainWindow = glutCreateWindow("Polygons");
+	glClearColor(0, 0, 0, 0); //clears the buffer of OpenGL, sets a black background
+
+		
+	/*In the vector, the input file data appears as:
+	[3,4,0,0,100,0,100,100,0,100,3,300,0,300,100,200,0,5,100,200,300,200,300,300,200,400,100,300,100,200]*/
+	auto vpoint = v1.begin();
+	double polyTotal = *vpoint;
+        double polyCount = 0; 	
+	while (polyCount < polyTotal) // Number of polygons to process 
+	{
+		int lineCount = 0;
+	        int lineTotal; 	
+		if (polyCount == 0)
+	        	lineTotal = *(vpoint+1);
+		else {
+			lineTotal = *(vpoint+2); 
+			vpoint++; 
+		}	
+		while (lineCount < lineTotal) {
+			vpoint += 2; 	
+			int x0 = *(vpoint);
+      			int y0 = *(vpoint+1);
+			int xend, yend; 
+		        if (lineCount == lineTotal-1) {
+				xend = *(vpoint-lineCount*2+0);
+				yend = *(vpoint-lineCount*2+1);
+			}	
+			else {
+				xend = *(vpoint+2);
+				yend = *(vpoint+3); 
+			}
+			//BEGIN DDA
+			if (Alg == "d" || Alg == "D") {
+				int dx = xend - x0, dy = yend - y0, steps, k;	
+				double xinc, yinc, x = x0, y = y0; 
+				if (fabs(dx) > fabs(dy))
+					steps = fabs(dx); 
+				else
+					steps = fabs(dy);
+       				xinc = (double)dx/(double)steps; 
+				yinc = (double)dy/(double)steps; 	 
+				makePix(roundOff(x), roundOff(y)); 
+				for (k = 0; k < steps; k++) {
+					x += xinc; 
+					y += yinc;
+					makePix(roundOff(x), roundOff(y)); 
+				}
+			}//END DDA
+			//BEGIN BRESENHAM
+			else { 
+				if (fabs(yend - y0) < fabs(xend - x0)) {
+                                       	if (x0 > xend) {
+                                               	double dx = x0 - xend;
+                                              	double dy = y0 - yend; 
+                                               	double yi = 1;
+                                               	if (dy < 0) {
+                                                       	yi = -1;
+                                                       	dy = -1*dy;
+                                               	}
+                                               	double twoDyMinusDx = 2*dy - dx;
+                                               	double y = yend;
+                                               	double x = xend; 
+                                               	while (x <= x0) {
+                                                       	makePix(roundOff(x),roundOff(y));
+                                                       	if (twoDyMinusDx > 0) {
+                                                               	y = y + yi;
+                                                               	twoDyMinusDx -= 2*dx;
+                                                       	}
+                                                       	twoDyMinusDx += 2*dy;
+                                                       	x += 1; 
+                                               	}
+                                        }
+                                       	else {
+                                               	double dx = xend - x0;
+                                               	double dy = yend - y0; 
+                                               	double yi = 1;
+                                               	if (dy < 0) {
+                                                       	yi = -1;
+                                                       	dy = -1*dy; 
+                                               	}
+                                               	double twoDyMinusDx = 2*dy - dx; 
+                                               	double y = y0;  
+                                               	double x = x0; 
+                                               	while (x <= xend) {
+                                                       	makePix(roundOff(x),roundOff(y));
+                                                       	if (twoDyMinusDx > 0) {
+                                                               	y += yi; 
+                                                               	twoDyMinusDx -= 2*dx; 
+                                                       	}
+                                                       	twoDyMinusDx += 2*dy;
+                                                       	x += 1;         
+                                               	}	
+                                       	}
+				}
+				else {
+					if (y0 > yend) {
+	                                	double dx = x0 - xend;
+                                               	double dy = y0 - yend;
+                                               	double xi = 1;
+                                               	if (dx < 0) {
+                                                       	xi = -1;
+                                                       	dx = -1*dx;
+                                               	}
+                                               	double twoDxMinusDy = 2*dx - dy;
+                                               	double x = xend;
+                                               	double y = yend;
+                                               	while (y < y0) {
+                                                       	makePix(roundOff(x), roundOff(y));
+                                                       	if (twoDxMinusDy > 0) {
+                                                               	x += xi;
+                                                               	twoDxMinusDy -= 2*dy;
+                                                       	}
+                                                       	twoDxMinusDy += 2*dx;
+                                                     	y += 1;
+                                                }
+                                       	}
+                                       	else {
+                                               	double dx = xend - x0;
+                                               	double dy = yend - y0;
+                                               	double xi = 1;
+                                               	if (dx < 0) {
+                                                       	xi = -1;
+                                                       	dx = -1*dx;
+                                               	}
+                                               	double twoDxMinusDy = 2*dx - dy;
+                                               	double x = x0;
+                                               	double y = y0;
+                                               	while (y < yend) {
+                                                       	makePix(roundOff(x), roundOff(y));
+                                                       	if (twoDxMinusDy > 0) {
+                                                               	x += xi;
+                                                               	twoDxMinusDy -= 2*dy;
+                                                       	}
+                                                       	twoDxMinusDy += 2*dx;
+                                                       	y += 1;
+                                               	}
+                                       	}
+                               	}			
+			}//END BRESENHAM
+			lineCount++; 
+		}
+		polyCount++; 
+	}
+
+	glutDisplayFunc(display);
+
+	glutMainLoop();//main display loop, will display until terminate
+	file.close();
+
+	return 0;
+}
+
+//main display loop, this function will be called again and again by OpenGL
+void display()
+{
+	//Displays window to screen 
+	glClear(GL_COLOR_BUFFER_BIT);
+	glLoadIdentity();
+
+	//draws pixel on screen, width and height must match pixel buffer dimension
+	glDrawPixels(wWidth, wLength, GL_RGB, GL_FLOAT, PixelBuffer);
+
+	//window refresh
+	glFlush();
+}
+void makePix(int x, int y)
+{
+	PixelBuffer[(y * wWidth + x) * 3 + 0] = 0;
+	PixelBuffer[(y * wWidth + x) * 3 + 1] = 255;
+	PixelBuffer[(y * wWidth + x) * 3 + 2] = 255;
+}
