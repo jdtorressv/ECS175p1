@@ -210,12 +210,43 @@ int main(int argc, char *argv[])
 			}//END BRESENHAM
 			lineCount++; 
 		}
-		//RASTERIZE!*************************************************************************
-		
-		copyBuffer(); 
-		polyCount++;
-	}
+		//BEGIN RASTERIZATION
+		for (int i = 0; i < wLength; i++) {
+			//Each i is a particular scanline...
+			bool beenOnBlue = false; 
+			bool insideNow = false; 
+			bool beenInside = false; 
+			for (int j = 0; j < wWidth; j++) {
+				//j walks across a scan line
+				int r = PolygonBuffer[(i*wWidth+j)*3+0]; 
+				int g = PolygonBuffer[(i*wWidth+j)*3+0];
+				int b = PolygonBuffer[(i*wWidth+j)*3+0];
 
+				if (r == 0 && g == 255 && b == 255 && !beenOnBlue && i != maxExtrema && i != minExtrema) {
+					//Toggle the flag and wait to see what happens next
+					beenOnBlue = true;	
+				}
+				else if (r == 0 && g == 0 && b == 0 && beenOnBlue && !beenInside) {
+					//Make it red!
+					PolygonBuffer[(i * wWidth + j) * 3 + 0] = 255;
+        	                        PolygonBuffer[(i * wWidth + j) * 3 + 1] = 0;
+	                                PolygonBuffer[(i * wWidth + j) * 3 + 2] = 0;
+ 
+					if (!insideNow)
+						insideNow = true; 
+				}	
+				else if (r == 0 && g == 255 && b == 255 && insideNow) {
+					beenInside = true;
+					insideNow = false; 	
+				} 
+			}
+		}//END RASTERIZATION
+		copyBuffer();
+		polyCount++;
+		for (int z = 0; z < wLength*wWidth*3; z++)
+		       PolygonBuffer[z] = 0; 	
+
+	}
 	glutDisplayFunc(display);
 
 	glutMainLoop();//main display loop, will display until terminate
