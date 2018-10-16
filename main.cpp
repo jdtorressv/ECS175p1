@@ -18,12 +18,16 @@ int wLength;
 void display();
 inline int roundOff(const double a) {return (int)(a+0.5);}
 void makePix(int x, int y);
-void copyBuffer(); 
+inline void mainMenu(int id) {;} 
+void copyBuffer();
+void scaleMenu(int id); 
+void rotateMenu(int id); 
+void translateMenu(int id);
+//void mouseFunc(int button, int state, int x, int y);
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // These are the default values
-	//User set the input size in the command line
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // These are the default values 
 	if (argc != 3) {
 		cout << "Usage: p1 <window width> <window length>\n";
 		exit(1); 
@@ -31,9 +35,9 @@ int main(int argc, char *argv[])
 	wWidth = atoi(argv[1]); 
 	wLength = atoi(argv[2]); 	
 	glutInitWindowSize(wWidth, wLength);
+	glutInitWindowPosition(100, 100); 
 	PixelBuffer = new float[wWidth * wLength * 3](); 
-	//set window position
-	glutInitWindowPosition(100, 100);
+	int scale_menu, rotate_menu, translate_menu; 
 
 	fstream file; 
 	file.open("inputFile.txt");
@@ -247,7 +251,47 @@ int main(int argc, char *argv[])
 		       PolygonBuffer[z] = 0; 	
 
 	}
+	//Draw the file specified polygons 
 	glutDisplayFunc(display);
+	//glutMouseFunc(mouseFunc); 
+
+
+	// Offer the user opportunities to transform! 
+	
+	translate_menu = glutCreateMenu(translateMenu);
+	for (int i = 1; i <= polyTotal; i++) {
+		const char base[] = "";
+		char str[5];
+		sprintf(str, "%s%d", base, i);
+		glutAddMenuEntry(str, i);
+	}
+
+       	scale_menu = glutCreateMenu(scaleMenu);
+	for (int i = 1; i <= polyTotal; i++) {
+        	const char base[] = "";
+                char str[5];
+                sprintf(str, "%s%d", base, i);
+                glutAddMenuEntry(str, i);
+        }
+
+	rotate_menu = glutCreateMenu(rotateMenu);
+	for (int i = 1; i <= polyTotal; i++) {
+                const char base[] = "";
+                char str[5];
+                sprintf(str, "%s%d", base, i);
+                glutAddMenuEntry(str, i);
+        }
+
+	glutCreateMenu(mainMenu);
+		glutAddSubMenu("Translate", translate_menu);
+		glutAddSubMenu("Scale", scale_menu); 
+		glutAddSubMenu("Rotate", rotate_menu);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+        	
+
+	glutPostRedisplay(); 
+
+
 
 	glutMainLoop();//main display loop, will display until terminate
 	file.close();
@@ -281,3 +325,17 @@ void copyBuffer()
 			PixelBuffer[i] = PolygonBuffer[i];
 	}
 }
+void scaleMenu(int id)
+{
+	cout << "You're trying to scale polygon " << id << endl;
+}
+void rotateMenu(int id)
+{	
+	cout << "You're trying to rotate polygon " << id << endl; 
+}
+void translateMenu(int id)
+{
+	cout << "You're trying to translate polygon " << id << endl; 
+}
+
+
