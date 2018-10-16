@@ -335,7 +335,11 @@ void rotateMenu(int id)
 }
 void translateMenu(int id)
 {
-	cout << "You're trying to translate polygon " << id << endl; 
+	int x, y; 
+	cout << "You'd like to translate polygon " << id << endl;
+        cout << "Please enter the translation value along the x axis and y axis:\n";
+	cin >> x;
+	cin >> y; 
 }
 
 
