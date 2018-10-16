@@ -10,9 +10,9 @@
 
 using namespace std;
 
-//Remember that the input file should only contain # of poly, # of vertices, and ver. 
 float *PixelBuffer;
-float *PolygonBuffer; 
+float *PolygonBuffer;
+int polyCount; 
 int wWidth; 
 int wLength; 
 void display();
@@ -50,7 +50,8 @@ int main(int argc, char *argv[])
  	while (file >> num) 
     		v1.push_back(num);
 	auto vpoint = v1.begin(); 	
-	PolygonBuffer = new float[wWidth*wLength*3](); 
+	int polyTotal = (int)*vpoint;
+	PolygonBuffer = new float[polyTotal*wWidth*wLength*3](); 
 
         string Alg; 	
 	cout << "Please specify DDA with \"d/D\" or Bresenham with \"B/b\"\n";  
@@ -65,8 +66,7 @@ int main(int argc, char *argv[])
 		
 	/*In the vector, the input file data appears as:
 	[3,4,0,0,100,0,100,100,0,100,3,300,0,300,100,200,0,5,100,200,300,200,300,300,200,400,100,300,100,200]*/
-	double polyTotal = *vpoint;
-        double polyCount = 0; 	
+        polyCount = 0; 	
 	while (polyCount < polyTotal) // Number of polygons to process 
 	{
 		int lineCount = 0;
@@ -222,9 +222,9 @@ int main(int argc, char *argv[])
 			bool beenInside = false; 
 			for (int j = 0; j < wWidth; j++) {
 				//j walks across a scan line 
-				int r = PolygonBuffer[(i*wWidth+j)*3+0]; 
-				int g = PolygonBuffer[(i*wWidth+j)*3+1];
-				int b = PolygonBuffer[(i*wWidth+j)*3+2];
+				int r = PolygonBuffer[polyCount*wWidth*wLength*3 + (i*wWidth+j)*3+0]; 
+				int g = PolygonBuffer[polyCount*wWidth*wLength*3 + (i*wWidth+j)*3+1];
+				int b = PolygonBuffer[polyCount*wWidth*wLength*3 + (i*wWidth+j)*3+2];
 
 				if (r == 0 && g == 255 && b == 255 && !beenOnBlue && fabs((float)i-maxExtrema) > 1.0 && fabs((float)i-minExtrema) > 1.0) {
 					//Toggle the flag and wait to see what happens next
@@ -232,9 +232,9 @@ int main(int argc, char *argv[])
 				}
 				else if (r == 0 && g == 0 && b == 0 && beenOnBlue && !beenInside) {
 					//Make it red!
-					PolygonBuffer[(i * wWidth + j) * 3 + 0] = 255;
-        	                        PolygonBuffer[(i * wWidth + j) * 3 + 1] = 0;
-	                                PolygonBuffer[(i * wWidth + j) * 3 + 2] = 0;
+					PolygonBuffer[polyCount*wWidth*wLength*3 + (i*wWidth+j)*3+0] = 255;
+        	                        PolygonBuffer[polyCount*wWidth*wLength*3 + (i*wWidth+j)*3+1] = 0;
+	                                PolygonBuffer[polyCount*wWidth*wLength*3 + (i*wWidth+j)*3+2] = 0;
  
 					if (!insideNow)
 						insideNow = true; 
@@ -247,8 +247,8 @@ int main(int argc, char *argv[])
 		}//END RASTERIZATION
 		copyBuffer();
 		polyCount++;
-		for (int z = 0; z < wLength*wWidth*3; z++)
-		       PolygonBuffer[z] = 0; 	
+	//	for (int z = 0; z < wLength*wWidth*3; z++)
+	//	       PolygonBuffer[z] = 0;	
 
 	}
 	//Draw the file specified polygons 
@@ -314,15 +314,15 @@ void display()
 }
 void makePix(int x, int y)
 {
-	PolygonBuffer[(y * wWidth + x) * 3 + 0] = 0;
-	PolygonBuffer[(y * wWidth + x) * 3 + 1] = 255;
-	PolygonBuffer[(y * wWidth + x) * 3 + 2] = 255;
+	PolygonBuffer[polyCount*wWidth*wLength*3 + (y*wWidth+x)*3+0] = 0;
+	PolygonBuffer[polyCount*wWidth*wLength*3 + (y*wWidth+x)*3+1] = 255;
+	PolygonBuffer[polyCount*wWidth*wLength*3 + (y*wWidth+x)*3+2] = 255;
 }
 void copyBuffer()
 {
 	for (int i = 0; i < wLength*wWidth*3; i++) {
-		if (PolygonBuffer[i] != 0)
-			PixelBuffer[i] = PolygonBuffer[i];
+		if (PolygonBuffer[polyCount*wWidth*wLength*3 + i] != 0)
+			PixelBuffer[i] = PolygonBuffer[polyCount*wWidth*wLength*3 + i];
 	}
 }
 void scaleMenu(int id)
@@ -339,7 +339,8 @@ void translateMenu(int id)
 	cout << "You'd like to translate polygon " << id << endl;
         cout << "Please enter the translation value along the x axis and y axis:\n";
 	cin >> x;
-	cin >> y; 
+	cin >> y;
+       	cout << "You entered " + std::to_string(x) + " for x and " + std::to_string(y) + " for y.\n"; 
 }
 
 
