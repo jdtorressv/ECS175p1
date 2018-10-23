@@ -371,7 +371,33 @@ void scaleMenu(int pid)
 }
 void rotateMenu(int pid)
 {
-        cout << "You're trying to rotate polygon " << pid << endl;
+        double alpha;
+        int vertices = vArr.at(pid).at(0);
+        double xSum = 0;
+        double ySum = 0;
+        double centX, centY; 
+	
+        cout << "Please enter the angle in radians you'd like to rotate by:\n";
+        cin >> alpha;
+
+        for (int i = 0; i < vertices; i++) {
+                xSum += vArr.at(pid).at(1+i*2);
+        }
+        centX = xSum / (double)vertices;
+        for (int i = 0; i < vertices; i++) {
+                ySum += vArr.at(pid).at(2+i*2);
+        }
+        centY = ySum / (double)vertices;
+        for (int i = 0; i < vertices; i++) {
+		double oldX, oldY; 
+                oldX = vArr.at(pid).at(1+i*2) - centX;
+                oldY = vArr.at(pid).at(2+i*2) - centY;
+                vArr.at(pid).at(1+i*2) = (oldX*cos(alpha) - oldY*sin(alpha)) + centX;
+                vArr.at(pid).at(2+i*2) = (oldX*sin(alpha) + oldY*cos(alpha)) + centY;
+        }
+
+        lineDrawRaster();
+        glutPostRedisplay();
 }
 void translateMenu(int pid)
 {
