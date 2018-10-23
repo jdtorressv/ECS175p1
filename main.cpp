@@ -25,10 +25,14 @@ void copyBuffer(int pid);
 void clearPixelBuffer(); 
 void clearPolygonBuffer(int pid); 
 void lineDrawRaster();
-inline void mainMenu(int id) {;}
+inline void mainMenu(int pid) {;}
 void scaleMenu(int pid);
 void rotateMenu(int pid);
 void translateMenu(int pid);
+void clippingMenu(int pid);
+void clip(int points[10][2], int &vertices,int x1, int y1, int x2, int y2);
+int xInter(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4);
+int yInter(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4);
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +48,7 @@ int main(int argc, char *argv[])
         glutInitWindowPosition(100, 100);
         int MainWindow = glutCreateWindow("Polygons");
         glClearColor(0, 0, 0, 0); //clears the buffer of OpenGL, sets a black background
-        int scale_menu, rotate_menu, translate_menu;//For use in graphical menu
+        int scale_menu, rotate_menu, translate_menu, clipping_menu;//For use in graphical menu
 
         vector<double> v; // The main V 
 	double num; 
@@ -53,7 +57,7 @@ int main(int argc, char *argv[])
 
         if (!file) {
                 cerr << "Unable to open file\n";
-		exit(1);   // call system to stop
+		exit(1);   
         }
         while (file >> num)
                 v.push_back(num); //Initial vector for all polygons
@@ -100,10 +104,16 @@ int main(int argc, char *argv[])
                 glutAddMenuEntry("Triangle", 1);
                 glutAddMenuEntry("Pentagon", 2);
 
-        glutCreateMenu(mainMenu);
+        clipping_menu = glutCreateMenu(clippingMenu); 
+		glutAddMenuEntry("Square", 0);
+                glutAddMenuEntry("Triangle", 1);
+                glutAddMenuEntry("Pentagon", 2);
+	
+	glutCreateMenu(mainMenu);
                 glutAddSubMenu("Translate", translate_menu);
                 glutAddSubMenu("Scale", scale_menu);
                 glutAddSubMenu("Rotate", rotate_menu);
+		glutAddSubMenu("Clipping", clipping_menu); 
         glutAttachMenu(GLUT_RIGHT_BUTTON);
 
        
@@ -371,7 +381,7 @@ void scaleMenu(int pid)
         file.open("inputFile.txt", std::ofstream::out | std::ofstream::trunc);
         if (!file) {
                 cerr << "Unable to open file\n";
-                exit(1);   // call system to stop
+                exit(1);   
         }
         file << vArr.size() << '\n';
         for (int i = 0; i < vArr.size(); i++) {
@@ -413,7 +423,7 @@ void rotateMenu(int pid)
         file.open("inputFile.txt", std::ofstream::out | std::ofstream::trunc);
         if (!file) {
                 cerr << "Unable to open file\n";
-                exit(1);   // call system to stop
+                exit(1);   
         }
         file << vArr.size() << '\n';
         for (int i = 0; i < vArr.size(); i++) {
@@ -449,4 +459,108 @@ void translateMenu(int pid)
 	lineDrawRaster(); 
 	glutPostRedisplay(); 
 }
+void clippingMenu(int pid) 
+{
+	int xMin, xMax, yMin, yMax; 
+	int vertices = vArr.at(pid).at(0); 
+	cout << "Please enter the x lower, x upper, y lower, and y upper bounds for the clipping window and hit enter:\n"; 
+	cin >> xMin >> xMax >> yMin >> yMax;
+	while (xMin < 0 || xMax > wWidth || yMin < 0 || yMax > wLength || xMin >= xMax || yMin >= yMax) {
+		cout << "Invalid. Please enter the x lower, x upper, y lower, and y upper bounds for the clipping window and hit enter:\n";
+		cin >> xMin >> xMax >> yMin >> yMax;
+	}
+       	
+	int points[10][2]; 		
+	for (int i = 0; i < vertices; i++) {
+		points[i][0] = vArr.at(pid).at(1+i*2);
+	        points[i][1] = vArr.at(pid).at(2+i*2);	
+	}		
+	
+	int clipWindow[4][2] = {{xMin, yMin}, {xMin, yMax}, {xMax, yMin}, {xMax, yMax}}; 	
 
+	for (int i = 0, k = (i+1) % 4; i < 4; i++)  
+        	clip(points, vertices, clipWindow[i][0], clipWindow[i][1], clipWindow[k][0], clipWindow[k][1]); 
+	
+	vArr.at(pid).clear();
+        cout << "Vertices is " << vertices << endl; 	
+	vArr.at(pid).push_back((double)vertices); 
+	for (int i = 0; i < vertices; i++) {
+		cout << "Pushing an ordered pair back" << endl; 
+                vArr.at(pid).push_back((double)points[i][0]); 
+                vArr.at(pid).push_back((double)points[i][1]); 
+	}
+
+	ofstream file;
+        file.open("inputFile.txt", std::ofstream::out | std::ofstream::trunc);
+        if (!file) {
+                cerr << "Unable to open file\n";
+                exit(1);   
+        }
+        file << vArr.size() << '\n';
+        for (int i = 0; i < vArr.size(); i++) {
+                for (int j = 0; j < vArr.at(i).size(); j++)
+                        file << vArr.at(i).at(j) << '\n';
+        }
+
+        lineDrawRaster();
+        glutPostRedisplay();
+}
+void clip(int points[10][2], int &vertices,int x1, int y1, int x2, int y2)
+{
+	//Sutherland-Hodgman
+	int newPoints[10][2], newVertices = 0; 
+    	for (int i = 0; i < vertices; i++) { 
+        	  
+       		int k = (i+1) % vertices; 
+        	int ix = points[i][0], iy = points[i][1]; 
+        	int kx = points[k][0], ky = points[k][1]; 
+  
+        	// Find position of first point of clipper line 
+        	int i_pos = (x2-x1) * (iy-y1) - (y2-y1) * (ix-x1); 
+  
+        	// Find position of second point 
+        	int k_pos = (x2-x1) * (ky-y1) - (y2-y1) * (kx-x1); 
+  
+        	// Both points inside 
+        	if (i_pos < 0  && k_pos < 0) {	  
+            		newPoints[newVertices][0] = kx; 
+            		newPoints[newVertices][1] = ky; 
+            		newVertices++; 
+        	}	 
+  
+        	// Only first point is outside 
+        	else if (i_pos >= 0  && k_pos < 0) {  
+            		newPoints[newVertices][0] = xInter(x1, y1, x2, y2, ix, iy, kx, ky); 
+            		newPoints[newVertices][1] = yInter(x1, y1, x2, y2, ix, iy, kx, ky); 
+            		newVertices; 
+  
+            		newPoints[newVertices][0] = kx; 
+            		newPoints[newVertices][1] = ky; 
+            		newVertices++; 
+        	}	 
+  
+        	// Only second point is outside 
+        	else if (i_pos < 0  && k_pos >= 0) {  
+            		newPoints[newVertices][0] = xInter(x1, y1, x2, y2, ix, iy, kx, ky); 
+            		newPoints[newVertices][1] = yInter(x1, y1, x2, y2, ix, iy, kx, ky); 
+            		newVertices++; 
+        	} 
+ 
+        	// Both outside 
+        	else  
+        		; //Do Nothing 
+    	} 
+    	vertices = newVertices; 
+    	for (int i = 0; i < vertices; i++) {	 
+        	points[i][0] = newPoints[i][0]; 
+        	points[i][1] = newPoints[i][1]; 
+    	}	 
+}
+int xInter(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
+{
+	return ((x1*y2 - y1*x2) * (x3-x4) - (x1-x2) * (x3*y4 - y3*x4)) / ((x1-x2) * (y3-y4) - (y1-y2) * (x3-x4));  
+}
+int yInter(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
+{
+	return ((x1*y2 - y1*x2) * (y3-y4) - (y1-y2) * (x3*y4 - y3*x4)) / ((x1-x2) * (y3-y4) - (y1-y2) * (x3-x4));  
+}

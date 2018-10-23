@@ -9,7 +9,7 @@ Arguments of 600, 600 do nicely. You will then be promped to enter "b" or "B" to
 drawn using Bresenham's Algorithm or enter "d" or "D" to use the DDA Algorithm. These polygons will be rasterized.
 
 Once the polygons have been rendered, you may right click anywhere on the viewing window and a menu will appear. In this menu you may select 
-to translate, scale, or rotate any of the poygons pictured. 
+to translate, scale, rotate, or clip any of the poygons pictured. 
 
 To translate: 
 When prompted, type the x followed by the y value of translation and hit enter.
@@ -20,14 +20,18 @@ When prompted, type the magnitude of the scaling and hit enter.
 To rotate: 
 When prompted, type the angle of rotation in radians. A positive angle will rotate the selected polygon counter-clockwise.  
 
+To clip*: 
+When prompted, enter the xMin, xMax, yMin, and yMax of the clipping window and hit enter. 
+
 The following algorithm/code line references indicate that algorithm's implemenation location as found in main.cpp:
 
 
-Digital Differential Analyzer.....................................106-122
-Bresenham's Algorithm.............................................123-213
-Rasterization.....................................................216-246
-Scaling...........................................................346-384
-Rotation..........................................................385-426
-Translation.......................................................427-451
+Digital Differential Analyzer.....................................175-191
+Bresenham's Algorithm.............................................192-283
+Rasterization.....................................................284-315
+Scaling...........................................................356-394
+Rotation..........................................................395-436
+Translation.......................................................437-461
+Clipping..........................................................462-563
 
-As of this time, no clipping facilities have been written. 
+*As of this time, the clipping function is not operational. 
