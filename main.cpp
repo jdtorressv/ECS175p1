@@ -22,7 +22,9 @@ void display();
 inline int roundOff(const double a) {return (int)(a+0.5);}
 void makePix(int x, int y, int pid);
 void copyBuffer(int pid);
-void lineDrawRaster(vector<double> v, int pid);
+void clearPixelBuffer(); 
+void clearPolygonBuffer(int pid); 
+void lineDrawRaster();
 inline void mainMenu(int id) {;}
 void scaleMenu(int pid);
 void rotateMenu(int pid);
@@ -60,9 +62,9 @@ int main(int argc, char *argv[])
 	
       	for (int i = 0; i < polyTotalForBuffer; i++) {
 		vector<double> Vx; 
-		vArr.push_back(Vx); 
-	        vArr.at(i).push_back(1); 
-		int vertices = (int) *(++vpoint);
+		vArr.push_back(Vx);  
+		double vertices = *(++vpoint);
+		vArr.at(i).push_back(vertices); 
 		for (int j = 0; j < vertices; j++) { 
 			vArr.at(i).push_back(*(++vpoint)); 
 			vArr.at(i).push_back(*(++vpoint)); 
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
 
 
 	//Line Draw and Rasterize the original polygons! 
-	lineDrawRaster(v, -1); 	
+	lineDrawRaster(); 	
 
 
         // Offer the user opportunities to transform! 
@@ -102,8 +104,6 @@ int main(int argc, char *argv[])
                 glutAddSubMenu("Rotate", rotate_menu);
         glutAttachMenu(GLUT_RIGHT_BUTTON);
 
-
-        //glutPostRedisplay(); 
        
         glutDisplayFunc(display);
 
@@ -114,16 +114,11 @@ int main(int argc, char *argv[])
         return 0;
 }
 
-void lineDrawRaster(vector<double> v, int pid) 
-{
-        auto vpoint = v.begin();
-        int polyCount = 0;
-	bool mainV = false;
-        //Check what kind of vector was passed: 
-        if (pid == -1)
-        	mainV = true; 
-
-        int polyTotal = (int)*vpoint; //Works no matter what sort of vector was passed, one if particular, all if all 
+void lineDrawRaster() 
+{ 
+	clearPixelBuffer(); 
+        int polyCount = 0; 
+        int polyTotal = vArr.size(); //Works no matter what sort of vector was passed, one if particular, all if all 
 
         string Alg;
         cout << "Please specify DDA with \"d/D\" or Bresenham with \"B/b\"\n";
@@ -134,40 +129,33 @@ void lineDrawRaster(vector<double> v, int pid)
         }
         /*In the main vector from the input file, the data appears as:
         [3,4,0,0,100,0,100,100,0,100,3,300,0,300,100,200,0,5,100,200,300,200,300,300,200,400,100,300,100,200]*/
-        while (polyCount < polyTotal) // Number of polygons to process, polyCount can be used no matter which vector is passed 
-        {
-        	if (mainV)	
-			pid = polyCount;         
-		int lineCount = 0;
+        while (polyCount < polyTotal) { 
+		int pid = polyCount;
+       		clearPolygonBuffer(pid); 		
                 int lineTotal;
                 double maxExtrema = 0;
                 double minExtrema = wLength;
-                if (polyCount == 0)
-                        lineTotal = *(vpoint+1);
-                else {
-                        lineTotal = *(vpoint+2);
-                        vpoint++;
-                }
-                while (lineCount < lineTotal) {
-                        vpoint += 2;
-                        double x0 = *(vpoint);
-                        double y0 = *(vpoint+1);
+                lineTotal = vArr.at(pid).at(0);
+           	int rover = 1; 
+                for (int line = 0; line < lineTotal; line++) {
+                        double x0 = vArr.at(pid).at(1+line*2);
+                        double y0 = vArr.at(pid).at(2+line*2); 
                         if (y0 > maxExtrema)
                                 maxExtrema = y0;
                         if (y0 < minExtrema)
                                 minExtrema = y0;
                         double xend, yend;
-                        if (lineCount == lineTotal-1) {
-                                xend = *(vpoint-lineCount*2+0);
-                                yend = *(vpoint-lineCount*2+1);
+                        if (line == lineTotal-1) {
+                                xend = vArr.at(pid).at(1);
+                                yend = vArr.at(pid).at(2);
                                 if (yend > maxExtrema)
                                         maxExtrema = yend;
                                 if (yend < minExtrema)
                                         minExtrema = yend;
                         }
                         else {
-                                xend = *(vpoint+2);
-                                yend = *(vpoint+3);
+                                xend = vArr.at(pid).at(3+line*2);
+                                yend = vArr.at(pid).at(4+line*2);
                                 if (yend > maxExtrema)
                                         maxExtrema = yend;
                                 if (yend < minExtrema)
@@ -281,7 +269,6 @@ void lineDrawRaster(vector<double> v, int pid)
                                         }
                                 }
                         }//END BRESENHAM
-                        lineCount++;
                 }
                 //BEGIN RASTERIZATION
                 for (int i = 0; i < wLength; i++) {
@@ -345,6 +332,16 @@ void copyBuffer(int pid)
                         PixelBuffer[i] = PolygonBuffer[pid*wWidth*wLength*3 + i];
         }
 }
+void clearPixelBuffer() 
+{
+	for (int i = 0; i < wLength*wWidth*3; i++)
+		PixelBuffer[i] = 0; 
+}
+void clearPolygonBuffer(int pid)
+{
+	for (int i = 0; i < wLength*wWidth*3; i++) 
+		PolygonBuffer[pid*wWidth*wLength*3 + i] = 0; 
+}
 void scaleMenu(int pid)
 {
 cout << "You're trying to scale polygon " << pid << endl;
@@ -355,6 +352,16 @@ void rotateMenu(int pid)
 }
 void translateMenu(int pid)
 {
-        cout << "You'd trying to translate polygon " << pid << endl;
+        int x, y; 
+	int vertices = vArr.at(pid).at(0);
+	cout << "You'd trying to translate polygon " << pid << endl;
+	cout << "Please enter the x and y translation values:\n";
+	cin >> x >> y;
+	for (int i = 0; i < vertices; i++) {
+		vArr.at(pid).at(1+2*i) += x; 
+		vArr.at(pid).at(2+2*i) += y;
+	}
+	lineDrawRaster(); 
+	glutPostRedisplay(); 
 }
 
