@@ -344,7 +344,30 @@ void clearPolygonBuffer(int pid)
 }
 void scaleMenu(int pid)
 {
-cout << "You're trying to scale polygon " << pid << endl;
+	double scale; 
+	int vertices = vArr.at(pid).at(0);
+        double xSum = 0;
+	double ySum = 0; 	
+	double centX, centY;
+
+	cout << "Please enter the magnitude you'd like to scale by:\n";	
+	cin >> scale; 
+
+	for (int i = 0; i < vertices; i++) {
+		xSum += vArr.at(pid).at(1+i*2);
+	}
+	centX = xSum / (double)vertices; 
+	for (int i = 0; i < vertices; i++) {
+		ySum += vArr.at(pid).at(2+i*2); 
+	}
+	centY = ySum / (double)vertices;
+	for (int i = 0; i < vertices; i++) {
+		vArr.at(pid).at(1+i*2) = scale*(vArr.at(pid).at(1+i*2) - centX) + centX; 
+		vArr.at(pid).at(2+i*2) = scale*(vArr.at(pid).at(2+i*2) - centY) + centY; 		
+	}
+
+	lineDrawRaster();
+        glutPostRedisplay();
 }
 void rotateMenu(int pid)
 {
@@ -354,7 +377,6 @@ void translateMenu(int pid)
 {
         int x, y; 
 	int vertices = vArr.at(pid).at(0);
-	cout << "You'd trying to translate polygon " << pid << endl;
 	cout << "Please enter the x and y translation values:\n";
 	cin >> x >> y;
 	for (int i = 0; i < vertices; i++) {
