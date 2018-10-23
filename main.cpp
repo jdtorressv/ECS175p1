@@ -57,6 +57,8 @@ int main(int argc, char *argv[])
         }
         while (file >> num)
                 v.push_back(num); //Initial vector for all polygons
+	file.close(); 
+
 	auto vpoint = v.begin(); 
         int polyTotalForBuffer = (int)*vpoint;
 	
@@ -109,7 +111,6 @@ int main(int argc, char *argv[])
 
 
         glutMainLoop();//main display loop, will display until terminate
-        file.close();
 
         return 0;
 }
@@ -366,6 +367,18 @@ void scaleMenu(int pid)
 		vArr.at(pid).at(2+i*2) = scale*(vArr.at(pid).at(2+i*2) - centY) + centY; 		
 	}
 
+	ofstream file;
+        file.open("inputFile.txt", std::ofstream::out | std::ofstream::trunc);
+        if (!file) {
+                cerr << "Unable to open file\n";
+                exit(1);   // call system to stop
+        }
+        file << vArr.size() << '\n';
+        for (int i = 0; i < vArr.size(); i++) {
+                for (int j = 0; j < vArr.at(i).size(); j++)
+                        file << vArr.at(i).at(j) << '\n';
+        }
+
 	lineDrawRaster();
         glutPostRedisplay();
 }
@@ -396,6 +409,18 @@ void rotateMenu(int pid)
                 vArr.at(pid).at(2+i*2) = (oldX*sin(alpha) + oldY*cos(alpha)) + centY;
         }
 
+	ofstream file;
+        file.open("inputFile.txt", std::ofstream::out | std::ofstream::trunc);
+        if (!file) {
+                cerr << "Unable to open file\n";
+                exit(1);   // call system to stop
+        }
+        file << vArr.size() << '\n';
+        for (int i = 0; i < vArr.size(); i++) {
+                for (int j = 0; j < vArr.at(i).size(); j++)
+                        file << vArr.at(i).at(j) << '\n';
+        }
+
         lineDrawRaster();
         glutPostRedisplay();
 }
@@ -409,6 +434,18 @@ void translateMenu(int pid)
 		vArr.at(pid).at(1+2*i) += x; 
 		vArr.at(pid).at(2+2*i) += y;
 	}
+	ofstream file; 
+	file.open("inputFile.txt", std::ofstream::out | std::ofstream::trunc);
+        if (!file) {
+                cerr << "Unable to open file\n";
+                exit(1);   // call system to stop
+        }
+	file << vArr.size() << '\n';
+	for (int i = 0; i < vArr.size(); i++) {
+		for (int j = 0; j < vArr.at(i).size(); j++) 
+			file << vArr.at(i).at(j) << '\n';
+	}
+
 	lineDrawRaster(); 
 	glutPostRedisplay(); 
 }
