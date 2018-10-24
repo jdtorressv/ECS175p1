@@ -462,30 +462,32 @@ void translateMenu(int pid)
 void clippingMenu(int pid) 
 {
 	int xMin, xMax, yMin, yMax; 
-	int vertices = vArr.at(pid).at(0); 
+	int vertices = (int)vArr.at(pid).at(0); 
 	cout << "Please enter the x lower, x upper, y lower, and y upper bounds for the clipping window and hit enter:\n"; 
 	cin >> xMin >> xMax >> yMin >> yMax;
 	while (xMin < 0 || xMax > wWidth || yMin < 0 || yMax > wLength || xMin >= xMax || yMin >= yMax) {
-		cout << "Invalid. Please enter the x lower, x upper, y lower, and y upper bounds for the clipping window and hit enter:\n";
-		cin >> xMin >> xMax >> yMin >> yMax;
+		cout << "Out of bounds. Please enter the x lower, x upper, y lower, and y upper bounds for the clipping window and hit enter:\n";
+		cin >> xMin >> xMax >> yMin >> yMax; 
 	}
-       	
+
 	int points[10][2]; 		
 	for (int i = 0; i < vertices; i++) {
-		points[i][0] = vArr.at(pid).at(1+i*2);
-	        points[i][1] = vArr.at(pid).at(2+i*2);	
+		points[i][0] = (int)vArr.at(pid).at(1+i*2);
+	        points[i][1] = (int)vArr.at(pid).at(2+i*2);	
 	}		
 	
-	int clipWindow[4][2] = {{xMin, yMin}, {xMin, yMax}, {xMax, yMin}, {xMax, yMax}}; 	
+	//Points in clipping window as well as in input file must be in clockwise order
+	int clipWindow[][2] = {{xMin, yMin}, {xMin, yMax}, {xMax, yMax}, {xMax, yMin}}; 	
 
-	for (int i = 0, k = (i+1) % 4; i < 4; i++)  
-        	clip(points, vertices, clipWindow[i][0], clipWindow[i][1], clipWindow[k][0], clipWindow[k][1]); 
+	for (int i = 0; i < 4; i++) {
+		int k = (i+1) % 4; 
+		clip(points, vertices, clipWindow[i][0], clipWindow[i][1], clipWindow[k][0], clipWindow[k][1]);
+	}	 
 	
 	vArr.at(pid).clear();
-        cout << "Vertices is " << vertices << endl; 	
+      	
 	vArr.at(pid).push_back((double)vertices); 
-	for (int i = 0; i < vertices; i++) {
-		cout << "Pushing an ordered pair back" << endl; 
+	for (int i = 0; i < vertices; i++) { 
                 vArr.at(pid).push_back((double)points[i][0]); 
                 vArr.at(pid).push_back((double)points[i][1]); 
 	}
@@ -505,10 +507,11 @@ void clippingMenu(int pid)
         lineDrawRaster();
         glutPostRedisplay();
 }
-void clip(int points[10][2], int &vertices,int x1, int y1, int x2, int y2)
+void clip(int points[][2], int &vertices, int x1, int y1, int x2, int y2)
 {
 	//Sutherland-Hodgman
-	int newPoints[10][2], newVertices = 0; 
+	int newPoints[10][2];
+        int newVertices = 0; 
     	for (int i = 0; i < vertices; i++) { 
         	  
        		int k = (i+1) % vertices; 
@@ -532,7 +535,7 @@ void clip(int points[10][2], int &vertices,int x1, int y1, int x2, int y2)
         	else if (i_pos >= 0  && k_pos < 0) {  
             		newPoints[newVertices][0] = xInter(x1, y1, x2, y2, ix, iy, kx, ky); 
             		newPoints[newVertices][1] = yInter(x1, y1, x2, y2, ix, iy, kx, ky); 
-            		newVertices; 
+            		newVertices++; 
   
             		newPoints[newVertices][0] = kx; 
             		newPoints[newVertices][1] = ky; 

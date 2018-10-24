@@ -20,7 +20,7 @@ When prompted, type the magnitude of the scaling and hit enter.
 To rotate: 
 When prompted, type the angle of rotation in radians. A positive angle will rotate the selected polygon counter-clockwise.  
 
-To clip*: 
+To clip: 
 When prompted, enter the xMin, xMax, yMin, and yMax of the clipping window and hit enter. 
 
 The following algorithm/code line references indicate that algorithm's implemenation location as found in main.cpp:
@@ -32,6 +32,6 @@ Rasterization.....................................................284-315
 Scaling...........................................................356-394
 Rotation..........................................................395-436
 Translation.......................................................437-461
-Clipping..........................................................462-563
+Clipping (Sutherland-Hodgman).....................................462-563
 
-*As of this time, the clipping function is not operational. 
+ 
